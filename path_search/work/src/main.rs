@@ -8,21 +8,25 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use graph::{graph::*, mst::*};
 
 fn main() {
-    let mst = calc_prim_mst();
-    for edge in mst.mst.into_iter().flatten() {
+    // let mst = calc_prim_mst();
+    // for edge in mst.mst.into_iter().flatten() {
+    //     println!("[{}] -> [{}]", edge.from.0, edge.to.0);
+    // }
+    for edge in calc_prim_mst_with_const_edges().mst.into_iter().flatten() {
         println!("[{}] -> [{}]", edge.from.0, edge.to.0);
     }
-    // let mut vertices = calc_median();
-    // vertices.sort_by(|a, b| calc_avg(a.x, a.y).partial_cmp(&calc_avg(b.x, b.y)).unwrap());
-    // let m: HashMap<Id, Vertex> = vertices.iter().map(|v| (v.id, v.clone())).collect();
-    // // println!("M:{:?}", m);
-    // let median_coords: Vec<(Id, f64)> = vertices
-    //     .iter()
-    //     .map(|v| (v.id, calc_avg(v.x, v.y)))
-    //     .collect();
-    // for (id, avg) in median_coords {
-    //     println!("V:{:?}\tavg:{}", m.get(&id), avg);
+}
+
+fn calc_prim_mst_with_const_edges() -> MST<DenseMatrixGraph> {
+    let mut vertices = calc_median();
+    vertices.sort_by(|a, b| calc_avg(a.x, a.y).partial_cmp(&calc_avg(b.x, b.y)).unwrap());
+
+    // for (id, v) in vertices.iter().enumerate() {
+    //     println!("V:{:?}\tavg:{}", id, calc_avg(v.x, v.y));
     // }
+    let graph = DenseMatrixGraph::from_points_with_neighbors(vertices, false);
+    // println!("Graph: {:?}", graph);
+    MST::calc_mst(graph)
 }
 
 fn calc_median() -> Vec<Vertex> {
@@ -79,7 +83,7 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-#[test]
+// #[test]
 fn prim_mst_test() {
     for step in 1..5 {
         let n = 3 * 10_usize.pow(step);
@@ -98,6 +102,44 @@ fn test_mst(n: usize) {
         vertices.push(v);
     }
     let graph = DenseMatrixGraph::from_points(vertices, false);
+    let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let prepare_time = end.as_millis() - start.as_millis();
+
+    let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let _ = MST::calc_mst(graph);
+    // println!("MST: {:?}", mst.mst);
+    // for edge in mst.mst.into_iter().flatten() {
+    //     println!("[{}] -> [{}]", edge.from.0, edge.to.0);
+    // }
+    let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let mst_time = end.as_millis() - start.as_millis();
+
+    println!(
+        "Prepare data and build graph: {} milliseconds;\nCalculate mst with N = {} vertices: {} milliseconds.",
+        prepare_time, n, mst_time
+    );
+}
+
+#[test]
+fn prim_mst_with_const_edges_test() {
+    for step in 1..6 {
+        let n = 3 * 10_usize.pow(step);
+        test_mst_with_const_edges(n);
+    }
+}
+
+fn test_mst_with_const_edges(n: usize) {
+    let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let mut vertices: Vec<Vertex> = vec![];
+    for id_cnt in 0..n {
+        let range = 0.0..3e+5;
+        let x = rand::random_range(range.clone());
+        let y = rand::random_range(range);
+        let v = Vertex::new(Id(id_cnt), x, y);
+        vertices.push(v);
+    }
+    vertices.sort_by(|a, b| calc_avg(a.x, a.y).partial_cmp(&calc_avg(b.x, b.y)).unwrap());
+    let graph = DenseMatrixGraph::from_points_with_neighbors(vertices, false);
     let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let prepare_time = end.as_millis() - start.as_millis();
 

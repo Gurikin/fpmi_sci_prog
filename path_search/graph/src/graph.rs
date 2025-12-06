@@ -161,17 +161,78 @@ impl DenseMatrixGraph {
         }
         DenseMatrixGraph {
             v_cnt: vertices.len(),
-            e_cnt: if directed {
-                matrix.len()
-            } else {
-                matrix.len() / 2
-            },
+            e_cnt: matrix.len(),
             directed,
             matrix,
         }
     }
 
-    pub fn dist_between_vertices(v: &Vertex, w: &Vertex) -> f64 {
+    pub fn from_points_with_neighbors(vertices: Vec<Vertex>, directed: bool) -> Self {
+        let mut matrix: BTreeMap<Id, BTreeMap<Id, Edge>> = BTreeMap::new();
+        for (curr_idx, curr_v) in vertices.iter().enumerate() {
+            let v = curr_v;
+            matrix.insert(v.id, BTreeMap::new());
+            for curr_w in DenseMatrixGraph::get_neighbors(curr_idx, 6, &vertices).iter() {
+                let w = curr_w;
+                let length = DenseMatrixGraph::dist_between_vertices(v, w);
+                matrix.get_mut(&v.id).and_then(|v_edges| {
+                    v_edges.insert(
+                        w.id,
+                        Edge {
+                            from: v.id,
+                            to: w.id,
+                            weight: length,
+                        },
+                    )
+                });
+                if !directed {
+                    matrix.get_mut(&v.id).and_then(|v_edges| {
+                        v_edges.insert(
+                            w.id,
+                            Edge {
+                                from: v.id,
+                                to: w.id,
+                                weight: length,
+                            },
+                        )
+                    });
+                }
+            }
+        }
+        DenseMatrixGraph {
+            v_cnt: vertices.len(),
+            e_cnt: matrix.len(),
+            directed,
+            matrix,
+        }
+    }
+
+    fn get_neighbors(n: usize, neighbor_cnt: usize, vertices: &[Vertex]) -> Vec<Vertex> {
+        let n = n as i32;
+        let neighbor_cnt = neighbor_cnt as i32;
+
+        let mut result = vec![];
+
+        for i in 0..(neighbor_cnt / 2) {
+            let left_n: i32 = if (n - i) >= 0 {
+                n - i
+            } else {
+                vertices.len() as i32 - i - 1
+            };
+            let right_n = if (n + i) < (vertices.len() as i32 - 1) {
+                n + i
+            } else {
+                i
+            };
+            let left_n = left_n as usize;
+            let right_n = right_n as usize;
+            result.push(vertices[left_n].clone());
+            result.push(vertices[right_n].clone());
+        }
+        result
+    }
+
+    fn dist_between_vertices(v: &Vertex, w: &Vertex) -> f64 {
         let x = f64::abs(v.x - w.x);
         let y = f64::abs(v.y - w.y);
         f64::sqrt(x.powi(2) + y.powi(2))
