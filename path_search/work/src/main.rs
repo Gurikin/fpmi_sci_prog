@@ -8,21 +8,21 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use graph::{graph::*, mst::*};
 
 fn main() {
-    // let mst = calc_prim_mst();
-    // for edge in mst.mst.into_iter().flatten() {
-    // println!("[{}] -> [{}]", edge.from.0, edge.to.0);
-    // }
-    let mut vertices = calc_median();
-    vertices.sort_by(|a, b| calc_avg(a.x, a.y).partial_cmp(&calc_avg(b.x, b.y)).unwrap());
-    let m: HashMap<Id, Vertex> = vertices.iter().map(|v| (v.id, v.clone())).collect();
-    // println!("M:{:?}", m);
-    let median_coords: Vec<(Id, f64)> = vertices
-        .iter()
-        .map(|v| (v.id, calc_avg(v.x, v.y)))
-        .collect();
-    for (id, avg) in median_coords {
-        println!("V:{:?}\tavg:{}", m.get(&id), avg);
+    let mst = calc_prim_mst();
+    for edge in mst.mst.into_iter().flatten() {
+        println!("[{}] -> [{}]", edge.from.0, edge.to.0);
     }
+    // let mut vertices = calc_median();
+    // vertices.sort_by(|a, b| calc_avg(a.x, a.y).partial_cmp(&calc_avg(b.x, b.y)).unwrap());
+    // let m: HashMap<Id, Vertex> = vertices.iter().map(|v| (v.id, v.clone())).collect();
+    // // println!("M:{:?}", m);
+    // let median_coords: Vec<(Id, f64)> = vertices
+    //     .iter()
+    //     .map(|v| (v.id, calc_avg(v.x, v.y)))
+    //     .collect();
+    // for (id, avg) in median_coords {
+    //     println!("V:{:?}\tavg:{}", m.get(&id), avg);
+    // }
 }
 
 fn calc_median() -> Vec<Vertex> {

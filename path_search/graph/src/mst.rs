@@ -6,8 +6,12 @@ pub struct MST<T: GraphTrait> {
     pub mst: Vec<Option<Edge>>,
 }
 
-impl MST<DenseMatrixGraph> {
-    pub fn calc_mst(graph: DenseMatrixGraph) -> Self {
+pub trait PrimMST<T: GraphTrait> {
+    fn calc_mst(graph: T) -> Self;
+}
+
+impl PrimMST<DenseMatrixGraph> for MST<DenseMatrixGraph> {
+    fn calc_mst(graph: DenseMatrixGraph) -> Self {
         let v = graph.v();
         let mut in_mst = vec![false; v];
         let mut min_edge = vec![f64::MAX; v];
