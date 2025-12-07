@@ -18,6 +18,7 @@ impl PrimMST<DenseMatrixGraph> for MST<DenseMatrixGraph> {
         let mut min_edge = vec![f64::MAX; v];
         let mut parent = vec![None; v];
         let mut mst_edges = vec![None; v];
+        let mut cnt = 0;
 
         // Начинаем с вершины 0
         min_edge[0] = 0.0;
@@ -29,6 +30,7 @@ impl PrimMST<DenseMatrixGraph> for MST<DenseMatrixGraph> {
                 if !in_mst[i] && (u.is_none() || min_edge[i] < min_edge[u.unwrap()]) {
                     u = Some(i);
                 }
+                cnt += 1;
             }
 
             let u = u.unwrap();
@@ -47,9 +49,11 @@ impl PrimMST<DenseMatrixGraph> for MST<DenseMatrixGraph> {
                         min_edge[w] = edge.weight;
                         parent[w] = Some(u.into());
                     }
+                    cnt += 1;
                 })
             }
         }
+        println!("TOTAL OPERATION: {}", cnt);
 
         // Вычисляем общий вес
         let total_weight = mst_edges
@@ -57,6 +61,7 @@ impl PrimMST<DenseMatrixGraph> for MST<DenseMatrixGraph> {
             .filter_map(|e| e.as_ref())
             .map(|e| e.weight)
             .sum::<f64>();
+
         Self {
             g: graph,
             mst: mst_edges,

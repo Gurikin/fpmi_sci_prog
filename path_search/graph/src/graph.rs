@@ -172,6 +172,7 @@ impl DenseMatrixGraph {
                 });
             }
         }
+
         DenseMatrixGraph {
             v_cnt: vertices.len(),
             e_cnt: matrix.len(),
@@ -212,6 +213,7 @@ impl DenseMatrixGraph {
                 }
             }
         }
+
         DenseMatrixGraph {
             v_cnt: vertices.len(),
             e_cnt: matrix.len(),

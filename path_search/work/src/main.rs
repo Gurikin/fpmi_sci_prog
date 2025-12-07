@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::f64;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -91,8 +90,8 @@ where
 
 // #[test]
 fn prim_mst_test() {
-    for step in 1..5 {
-        let n = 3 * 10_usize.pow(step);
+    for step in 1..=6 {
+        let n = 5_usize.pow(step);
         test_mst(n);
     }
 }
@@ -128,8 +127,8 @@ fn test_mst(n: usize) {
 
 #[test]
 fn prim_mst_with_const_edges_test() {
-    for step in 1..6 {
-        let n = 3 * 10_usize.pow(step);
+    for step in 1..=6 {
+        let n = 5_usize.pow(step);
         test_mst_with_const_edges(n);
     }
 }
