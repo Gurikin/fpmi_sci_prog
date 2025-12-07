@@ -1,6 +1,8 @@
 use std::collections::BTreeMap;
 
-#[derive(Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct Id(pub usize);
 
 impl From<usize> for Id {
@@ -15,7 +17,7 @@ impl From<Id> for usize {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Vertex {
     pub id: Id,
     pub x: f64,
@@ -28,7 +30,7 @@ impl Vertex {
     }
 }
 
-#[derive(PartialEq, PartialOrd, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, PartialOrd, Clone, Copy, Debug)]
 pub struct Edge {
     pub from: Id,
     pub to: Id,
@@ -54,7 +56,7 @@ pub trait GraphTrait {
     fn edges(&self, v_id: Id) -> Option<BTreeMap<Id, Edge>>;
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DenseMatrixGraph {
     v_cnt: usize,
     e_cnt: usize,
@@ -146,14 +148,25 @@ impl DenseMatrixGraph {
             matrix.insert(v.id, BTreeMap::new());
             for curr_w in vertices.iter() {
                 let w = curr_w;
-                let length = DenseMatrixGraph::dist_between_vertices(v, w);
+                let weight = DenseMatrixGraph::dist_between_vertices(v, w);
                 matrix.get_mut(&v.id).and_then(|v_edges| {
                     v_edges.insert(
                         w.id,
                         Edge {
                             from: v.id,
                             to: w.id,
-                            weight: length,
+                            weight,
+                        },
+                    )
+                });
+
+                matrix.get_mut(&w.id).and_then(|w_edges| {
+                    w_edges.insert(
+                        v.id,
+                        Edge {
+                            from: w.id,
+                            to: v.id,
+                            weight,
                         },
                     )
                 });
@@ -172,7 +185,7 @@ impl DenseMatrixGraph {
         for (curr_idx, curr_v) in vertices.iter().enumerate() {
             let v = curr_v;
             matrix.insert(v.id, BTreeMap::new());
-            for curr_w in DenseMatrixGraph::get_neighbors(curr_idx, 6, &vertices).iter() {
+            for curr_w in DenseMatrixGraph::get_neighbors(curr_idx, 8, &vertices).iter() {
                 let w = curr_w;
                 let length = DenseMatrixGraph::dist_between_vertices(v, w);
                 matrix.get_mut(&v.id).and_then(|v_edges| {
@@ -213,7 +226,7 @@ impl DenseMatrixGraph {
 
         let mut result = vec![];
 
-        for i in 0..(neighbor_cnt / 2) {
+        for i in 0..=(neighbor_cnt / 2) {
             let left_n: i32 = if (n - i) >= 0 {
                 n - i
             } else {

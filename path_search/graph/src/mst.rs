@@ -4,6 +4,7 @@ use crate::graph::{DenseMatrixGraph, Edge, GraphTrait, Id};
 pub struct MST<T: GraphTrait> {
     pub g: T,
     pub mst: Vec<Option<Edge>>,
+    pub total_weight: f64,
 }
 
 pub trait PrimMST<T: GraphTrait> {
@@ -50,15 +51,16 @@ impl PrimMST<DenseMatrixGraph> for MST<DenseMatrixGraph> {
             }
         }
 
-        /* // Вычисляем общий вес
+        // Вычисляем общий вес
         let total_weight = mst_edges
             .iter()
             .filter_map(|e| e.as_ref())
-            .map(|e| e.length)
-            .sum::<f64>(); */
+            .map(|e| e.weight)
+            .sum::<f64>();
         Self {
             g: graph,
             mst: mst_edges,
+            total_weight,
         }
     }
 }

@@ -8,13 +8,16 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use graph::{graph::*, mst::*};
 
 fn main() {
-    // let mst = calc_prim_mst();
-    // for edge in mst.mst.into_iter().flatten() {
-    //     println!("[{}] -> [{}]", edge.from.0, edge.to.0);
-    // }
-    for edge in calc_prim_mst_with_const_edges().mst.into_iter().flatten() {
+    let mst = calc_prim_mst();
+    for edge in mst.mst.into_iter().flatten() {
         println!("[{}] -> [{}]", edge.from.0, edge.to.0);
     }
+    println!("Total weight of Prim MST: {}", mst.total_weight);
+    let mst = calc_prim_mst_with_const_edges();
+    for edge in mst.mst.into_iter().flatten() {
+        println!("[{}] -> [{}]", edge.from.0, edge.to.0);
+    }
+    println!("Total weight of MST with const edges: {}", mst.total_weight);
 }
 
 fn calc_prim_mst_with_const_edges() -> MST<DenseMatrixGraph> {
@@ -25,7 +28,8 @@ fn calc_prim_mst_with_const_edges() -> MST<DenseMatrixGraph> {
     //     println!("V:{:?}\tavg:{}", id, calc_avg(v.x, v.y));
     // }
     let graph = DenseMatrixGraph::from_points_with_neighbors(vertices, false);
-    // println!("Graph: {:?}", graph);
+    let ser_graph = serde_json::to_string(&graph);
+    println!("Graph: {:?}", ser_graph.unwrap());
     MST::calc_mst(graph)
 }
 
@@ -69,6 +73,8 @@ fn calc_prim_mst() -> MST<DenseMatrixGraph> {
         }
     }
     let graph = DenseMatrixGraph::from_points(vertices, false);
+    let ser_graph = serde_json::to_string(&graph);
+    println!("Graph: {:?}", ser_graph.unwrap());
     // println!("Graph: {:?}", graph);
     MST::calc_mst(graph)
 }
