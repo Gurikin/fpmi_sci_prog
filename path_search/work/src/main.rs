@@ -20,8 +20,11 @@ fn main() {
     println!("Total weight of MST with const edges: {}", mst.total_weight);
 }
 
-fn prepare_mst_to_plot<T: GraphTrait>(mst: MST<T>, vertices_map: HashMap<Id, Vertex>) -> (Vec<graph::graph::Vertex>, Vec<(f32, f32)>) {
-        let mut mst_vec: VecDeque<(Id, Id)> = mst
+fn prepare_mst_to_plot<T: GraphTrait>(
+    mst: MST<T>,
+    vertices_map: HashMap<Id, Vertex>,
+) -> (Vec<graph::graph::Vertex>, Vec<(f32, f32)>) {
+    let mut mst_vec: VecDeque<(Id, Id)> = mst
         .mst
         .clone()
         .into_iter()
@@ -62,7 +65,10 @@ fn calc_prim_mst_with_const_edges() -> (MST<DenseMatrixGraph>, HashMap<Id, Verte
     let mut vertices = calc_median();
     vertices.sort_by(|a, b| calc_avg(a.x, a.y).partial_cmp(&calc_avg(b.x, b.y)).unwrap());
     let graph = DenseMatrixGraph::from_points_with_neighbors(vertices.clone(), false);
-    (MST::calc_mst(graph), vertices.iter().map(|v| (v.id, v.clone())).collect())
+    (
+        MST::calc_mst(graph),
+        vertices.iter().map(|v| (v.id, v.clone())).collect(),
+    )
 }
 
 fn calc_median() -> Vec<Vertex> {
