@@ -17,7 +17,7 @@ impl From<Id> for usize {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Vertex {
     pub id: Id,
     pub x: f64,
@@ -160,16 +160,18 @@ impl DenseMatrixGraph {
                     )
                 });
 
-                matrix.get_mut(&w.id).and_then(|w_edges| {
-                    w_edges.insert(
-                        v.id,
-                        Edge {
-                            from: w.id,
-                            to: v.id,
-                            weight,
-                        },
-                    )
-                });
+                if !directed {
+                    matrix.get_mut(&w.id).and_then(|w_edges| {
+                        w_edges.insert(
+                            v.id,
+                            Edge {
+                                from: w.id,
+                                to: v.id,
+                                weight,
+                            },
+                        )
+                    });
+                }
             }
         }
 

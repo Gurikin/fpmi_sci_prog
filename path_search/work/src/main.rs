@@ -1,3 +1,4 @@
+use std::collections::{HashMap, VecDeque};
 use std::f64;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -7,29 +8,61 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use graph::{graph::*, mst::*};
 
 fn main() {
-    let mst = calc_prim_mst();
+    let (mst, _) = calc_prim_mst();
     for edge in mst.mst.into_iter().flatten() {
         println!("[{}] -> [{}]", edge.from.0, edge.to.0);
     }
     println!("Total weight of Prim MST: {}", mst.total_weight);
-    let mst = calc_prim_mst_with_const_edges();
+    let (mst, _) = calc_prim_mst_with_const_edges();
     for edge in mst.mst.into_iter().flatten() {
         println!("[{}] -> [{}]", edge.from.0, edge.to.0);
     }
     println!("Total weight of MST with const edges: {}", mst.total_weight);
 }
 
-fn calc_prim_mst_with_const_edges() -> MST<DenseMatrixGraph> {
+fn prepare_mst_to_plot<T: GraphTrait>(mst: MST<T>, vertices_map: HashMap<Id, Vertex>) -> (Vec<graph::graph::Vertex>, Vec<(f32, f32)>) {
+        let mut mst_vec: VecDeque<(Id, Id)> = mst
+        .mst
+        .clone()
+        .into_iter()
+        .flatten()
+        .map(|e| (e.from, e.to))
+        .collect();
+    let zero_edge = mst_vec.iter().find(|e| e.0 == Id(0)).cloned();
+    if let Some(e) = zero_edge {
+        mst_vec.push_front((e.1, e.0));
+    }
+
+    let mut mst_vertices: Vec<Vertex> = vec![];
+    mst_vertices.insert(0, vertices_map.get(&mst_vec[1].1).unwrap().clone());
+    mst_vertices.insert(1, vertices_map.get(&mst_vec[1].0).unwrap().clone());
+    let mut idx = mst_vertices[1].id;
+
+    while mst_vertices.len() <= mst_vec.len() - 1 {
+        let from_tail_id = mst_vec.iter().find(|e| e.1 == idx);
+        println!("from_tail_id: {:?}", idx.0);
+        if from_tail_id.is_some() {
+            let from_vertex = vertices_map.get(&from_tail_id.map(|id| id.0).unwrap());
+            if let Some(v) = from_vertex {
+                println!("to_vertex by tail: {:?}", v);
+                mst_vertices.push(v.clone());
+                idx = from_tail_id.map(|id| id.0).unwrap();
+                println!("IDX: {}", idx.0);
+            }
+        }
+    }
+    let coords_vec: Vec<(f32, f32)> = mst_vertices
+        .iter()
+        .map(|v| (v.x as f32, v.y as f32))
+        .collect();
+    (mst_vertices, coords_vec)
+}
+
+fn calc_prim_mst_with_const_edges() -> (MST<DenseMatrixGraph>, HashMap<Id, Vertex>) {
     let mut vertices = calc_median();
     vertices.sort_by(|a, b| calc_avg(a.x, a.y).partial_cmp(&calc_avg(b.x, b.y)).unwrap());
-
-    // for (id, v) in vertices.iter().enumerate() {
-    //     println!("V:{:?}\tavg:{}", id, calc_avg(v.x, v.y));
-    // }
-    let graph = DenseMatrixGraph::from_points_with_neighbors(vertices, false);
-    let ser_graph = serde_json::to_string(&graph);
-    println!("Graph: {:?}", ser_graph.unwrap());
-    MST::calc_mst(graph)
+    let graph = DenseMatrixGraph::from_points_with_neighbors(vertices.clone(), false);
+    (MST::calc_mst(graph), vertices.iter().map(|v| (v.id, v.clone())).collect())
 }
 
 fn calc_median() -> Vec<Vertex> {
@@ -55,8 +88,9 @@ fn calc_avg(a: f64, b: f64) -> f64 {
     (a + b) / 2.0
 }
 
-fn calc_prim_mst() -> MST<DenseMatrixGraph> {
+fn calc_prim_mst() -> (MST<DenseMatrixGraph>, HashMap<Id, Vertex>) {
     let mut vertices: Vec<Vertex> = vec![];
+    let mut vertices_map: HashMap<Id, Vertex> = HashMap::new();
     let mut id_cnt = 0_usize;
     let default_coord = f64::MIN;
     if let Ok(lines) = read_lines("./data/lines.txt") {
@@ -67,15 +101,16 @@ fn calc_prim_mst() -> MST<DenseMatrixGraph> {
                 y.parse::<f64>().unwrap_or(default_coord),
             );
             let v = Vertex::new(Id(id_cnt), x, y);
-            vertices.push(v);
+            vertices.push(v.clone());
+            vertices_map.insert(v.id, v);
             id_cnt += 1;
         }
     }
     let graph = DenseMatrixGraph::from_points(vertices, false);
-    let ser_graph = serde_json::to_string(&graph);
-    println!("Graph: {:?}", ser_graph.unwrap());
+    // let ser_graph = serde_json::to_string(&graph);
+    // println!("Graph: {:?}", ser_graph.unwrap());
     // println!("Graph: {:?}", graph);
-    MST::calc_mst(graph)
+    (MST::calc_mst(graph), vertices_map)
 }
 
 // The output is wrapped in a Result to allow matching on errors.
